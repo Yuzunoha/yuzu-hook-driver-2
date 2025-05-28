@@ -5,11 +5,11 @@
 #include <string.h>
 
 void print_keyboard_device() {
-  for (int i = 0; i < 10; i++) { // 例として0から9までのeventファイルをチェック
+  for (int i = 0; i < 20; i++) { // 例として0から9までのeventファイルをチェック
     char path[20];
     snprintf(path, sizeof(path), "/dev/input/event%d", i);
     
-    int fd = open(path, O_RDONLY);
+    int fd = open(path, O_WRONLY | O_NONBLOCK);
     if (fd < 0) {
       continue; // 開けなかった場合はスキップ
     }
