@@ -6,7 +6,8 @@ void print_keyboard_device();
 
 // 実行コマンド
 // gcc -o main *.c; chmod +x main; ./main; rm ./main;
-int main() {
+int main()
+{
   print_keyboard_device();
   return 0;
 }

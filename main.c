@@ -9,13 +9,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define EVDEV_PATH "/dev/input/event4"  // 適宜変更
+#define EVDEV_PATH "/dev/input/event4" // 適宜変更
 // #define KEY_MUHENKAN 129  // KEY_COMPOSE や KEY_MUHENKAN は環境によって異なる（evtestで確認）
-#define KEY_J         36  // 通常は 'j' のスキャンコード
+#define KEY_J 36 // 通常は 'j' のスキャンコード
 
-int setup_uinput() {
+int setup_uinput()
+{
     int fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         perror("uinput open");
         exit(1);
     }
@@ -27,7 +29,7 @@ int setup_uinput() {
     memset(&uidev, 0, sizeof(uidev));
     snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "custom-virtual-kbd");
     uidev.id.bustype = BUS_USB;
-    uidev.id.vendor  = 0x1234;
+    uidev.id.vendor = 0x1234;
     uidev.id.product = 0xfedc;
     uidev.id.version = 1;
 
@@ -37,7 +39,8 @@ int setup_uinput() {
     return fd;
 }
 
-void send_key(int uinput_fd, int keycode) {
+void send_key(int uinput_fd, int keycode)
+{
     struct input_event ev;
     memset(&ev, 0, sizeof(ev));
     gettimeofday(&ev.time, NULL);
@@ -55,9 +58,11 @@ void send_key(int uinput_fd, int keycode) {
     write(uinput_fd, &ev, sizeof(ev));
 }
 
-int main() {
+int main()
+{
     int fd = open(EVDEV_PATH, O_RDONLY);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         perror("event device open");
         return 1;
     }
@@ -69,12 +74,15 @@ int main() {
 
     struct input_event ev;
 
-    while (read(fd, &ev, sizeof(ev)) > 0) {
-        if (ev.type == EV_KEY) {
+    while (read(fd, &ev, sizeof(ev)) > 0)
+    {
+        if (ev.type == EV_KEY)
+        {
             printf("ev.code: %d\n", ev.code);
-            
+
             // if (muhenkan_pressed && j_pressed) {
-            if (j_pressed) {
+            if (j_pressed)
+            {
                 printf("無変換+J detected: Sending KEY_DOWN\n");
                 send_key(uinput_fd, KEY_DOWN);
                 // 押しっぱなしの間連打したくないならどちらかのフラグをfalseに
