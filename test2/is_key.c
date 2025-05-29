@@ -6,7 +6,6 @@
 #include <string.h>
 #include <errno.h>
 
-#define DEVICE_PATH "/dev/input/event0"
 #define BIT_LEN (KEY_MAX / 8 + 1)
 
 /**
@@ -54,7 +53,7 @@ int is_keyboard_without_closing(int fd)
 int this_device_path_is_keyboard(char *device_path)
 {
   // 指定されたフルパスのデバイスを開く
-  int fd = open(DEVICE_PATH, O_RDONLY);
+  int fd = open(device_path, O_RDONLY);
   if (fd < 0)
   {
     // 開けなかった
@@ -68,22 +67,14 @@ int this_device_path_is_keyboard(char *device_path)
   return result;
 }
 
-void sub()
-{
-  char path[32];
-
-  for (int i = 0; i <= 10; i++)
-  {
-    snprintf(path, sizeof(path), "/dev/input/event%d", i);
-    printf("%s\n", path);
-  }
-}
-
 int main()
 {
-  sub();
-  int result = this_device_path_is_keyboard(DEVICE_PATH);
-  printf("%sはキーボードで%s\n", DEVICE_PATH, (result ? "ある" : "ない"));
-
+  char path[32];
+  for (int i = 0; i <= 30; i++)
+  {
+    snprintf(path, sizeof(path), "/dev/input/event%d", i);
+    int result = this_device_path_is_keyboard(path);
+    printf("%sはキーボードで%s\n", path, (result ? "ある" : "ない"));
+  }
   return 0;
 }
