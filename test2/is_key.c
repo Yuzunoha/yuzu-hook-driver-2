@@ -12,7 +12,7 @@
 /**
  * openされたfdを使って判定だけする。closeは呼び出し元でやる
  */
-int is_a_keyboard_without_closing_the_device(int fd)
+int is_keyboard_without_closing(int fd)
 {
   unsigned char evbit[EV_MAX / 8 + 1];
   unsigned char keybit[BIT_LEN];
@@ -51,7 +51,7 @@ int is_a_keyboard_without_closing_the_device(int fd)
   return 0;
 }
 
-int this_device_path_is_a_keyboard(char *device_path)
+int this_device_path_is_keyboard(char *device_path)
 {
   // 指定されたフルパスのデバイスを開く
   int fd = open(DEVICE_PATH, O_RDONLY);
@@ -61,7 +61,7 @@ int this_device_path_is_a_keyboard(char *device_path)
     return 0;
   }
   // 判定だけする
-  int result = is_a_keyboard_without_closing_the_device(fd);
+  int result = is_keyboard_without_closing(fd);
   // fdを必ず閉じる
   close(fd);
   // 結果を返却する
@@ -70,7 +70,7 @@ int this_device_path_is_a_keyboard(char *device_path)
 
 int main()
 {
-  int result = this_device_path_is_a_keyboard(DEVICE_PATH);
+  int result = this_device_path_is_keyboard(DEVICE_PATH);
   printf("%sはキーボードで%s\n", DEVICE_PATH, (result ? "ある" : "ない"));
 
   return 0;
