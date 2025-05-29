@@ -7,7 +7,8 @@
 void print_keyboard_device()
 {
   for (int i = 0; i < 20; i++)
-  { // 例として0から9までのeventファイルをチェック
+  {
+    // 例として0から9までのeventファイルをチェック
     char path[20];
     snprintf(path, sizeof(path), "/dev/input/event%d", i);
 
@@ -26,16 +27,18 @@ void print_keyboard_device()
     }
 
     // デバイスタイプの確認
-    if (id.bustype == BUS_USB || id.bustype == BUS_HOST)
+    struct input_event ev;
+    if (read(fd, &ev, sizeof(ev)))
     {
-      struct input_event ev;
-      if (read(fd, &ev, sizeof(ev)) > 0)
+      printf("i: %d, id.bustype: %d, ev.type: %d\n", i, id.bustype, ev.type);
+      if (ev.type == EV_KEY)
       {
-        if (ev.type == EV_KEY)
-        {
-          printf("%s is a keyboard device\n", path);
-        }
+        printf("%s is a keyboard device\n", path);
       }
+    }
+    else
+    {
+      printf("error\n");
     }
 
     close(fd);
