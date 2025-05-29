@@ -68,8 +68,20 @@ int this_device_path_is_keyboard(char *device_path)
   return result;
 }
 
+void sub()
+{
+  char path[32];
+
+  for (int i = 0; i <= 10; i++)
+  {
+    snprintf(path, sizeof(path), "/dev/input/event%d", i);
+    printf("%s\n", path);
+  }
+}
+
 int main()
 {
+  sub();
   int result = this_device_path_is_keyboard(DEVICE_PATH);
   printf("%sはキーボードで%s\n", DEVICE_PATH, (result ? "ある" : "ない"));
 
