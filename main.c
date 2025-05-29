@@ -1,75 +1,92 @@
-#include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <linux/uinput.h>
 #include <linux/input.h>
 #include <string.h>
 #include <errno.h>
-#include <poll.h>
-#include <stdbool.h>
-#include <stdlib.h>
+#include <sys/ioctl.h>
 
-#define EVDEV_PATH "/dev/input/event4" // 適宜変更
-// #define KEY_MUHENKAN 129  // KEY_COMPOSE や KEY_MUHENKAN は環境によって異なる（evtestで確認）
-#define KEY_J 36 // 通常は 'j' のスキャンコード
+#define DEVICE "/dev/input/event4" // キーボード入力元
 
-int setup_uinput()
+int setup_uinput_device()
 {
-    int fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
-    if (fd < 0)
-    {
-        perror("uinput open");
-        exit(1);
-    }
+  int uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+  if (uinput_fd < 0)
+  {
+    perror("open /dev/uinput");
+    exit(1);
+  }
 
-    ioctl(fd, UI_SET_EVBIT, EV_KEY);
-    ioctl(fd, UI_SET_KEYBIT, KEY_DOWN);
+  // 対応するイベント種別とキーをセット
+  ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY);
+  ioctl(uinput_fd, UI_SET_EVBIT, EV_SYN);
 
-    struct uinput_user_dev uidev;
-    memset(&uidev, 0, sizeof(uidev));
-    snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "custom-virtual-kbd");
-    uidev.id.bustype = BUS_USB;
-    uidev.id.vendor = 0x1234;
-    uidev.id.product = 0xfedc;
-    uidev.id.version = 1;
+  for (int i = 0; i < 256; i++)
+  {
+    ioctl(uinput_fd, UI_SET_KEYBIT, i);
+  }
 
-    write(fd, &uidev, sizeof(uidev));
-    ioctl(fd, UI_DEV_CREATE);
+  struct uinput_user_dev uidev = {};
+  snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "remap_keyboard");
+  uidev.id.bustype = BUS_USB;
+  uidev.id.vendor = 0x1234;
+  uidev.id.product = 0x5678;
+  uidev.id.version = 1;
 
-    return fd;
+  write(uinput_fd, &uidev, sizeof(uidev));
+  ioctl(uinput_fd, UI_DEV_CREATE);
+
+  sleep(1); // デバイスが有効になるまで待つ
+
+  return uinput_fd;
 }
 
-void send_key(int uinput_fd, int keycode)
+void emit(int fd, int type, int code, int value)
 {
-    struct input_event ev;
-    memset(&ev, 0, sizeof(ev));
-    gettimeofday(&ev.time, NULL);
-    ev.type = EV_KEY;
-    ev.code = keycode;
-    ev.value = 1; // key press
-    write(uinput_fd, &ev, sizeof(ev));
+  struct input_event ev;
+  gettimeofday(&ev.time, NULL);
+  ev.type = type;
+  ev.code = code;
+  ev.value = value;
+  write(fd, &ev, sizeof(ev));
 }
 
 int main()
 {
-    int fd = open(EVDEV_PATH, O_RDONLY);
-    if (fd < 0)
+  int input_fd = open(DEVICE, O_RDONLY);
+  if (input_fd < 0)
+  {
+    perror("open input device");
+    return 1;
+  }
+
+  int uinput_fd = setup_uinput_device();
+
+  struct input_event ev;
+  while (1)
+  {
+    ssize_t n = read(input_fd, &ev, sizeof(ev));
+    if (n != sizeof(ev))
+      continue;
+
+    if (ev.type == EV_KEY && ev.code == KEY_I)
     {
-        perror("event device open");
-        return 1;
+      ev.code = KEY_O;
     }
-    int uinput_fd = setup_uinput();
-    struct input_event ev;
-    while (read(fd, &ev, sizeof(ev)) > 0)
+
+    emit(uinput_fd, ev.type, ev.code, ev.value);
+
+    if (ev.type == EV_KEY || ev.type == EV_SYN)
     {
-        if (ev.type == EV_KEY)
-        {
-            printf("ev.code: %d\n", ev.code);
-            send_key(uinput_fd, 'A');
-        }
+      emit(uinput_fd, EV_SYN, SYN_REPORT, 0);
     }
-    ioctl(uinput_fd, UI_DEV_DESTROY);
-    close(uinput_fd);
-    close(fd);
-    return 0;
+  }
+
+  // 通常ここに来ないが、終了処理を書くなら以下
+  ioctl(uinput_fd, UI_DEV_DESTROY);
+  close(uinput_fd);
+  close(input_fd);
+  return 0;
 }
