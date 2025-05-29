@@ -9,7 +9,7 @@
 #define DEVICE_PATH "/dev/input/event4"
 #define BIT_LEN (KEY_MAX / 8 + 1)
 
-int main()
+int this_device_path_is_keyboard(char *device_path)
 {
   int fd;
   unsigned char evbit[EV_MAX / 8 + 1];
@@ -60,5 +60,11 @@ int main()
   }
 
   close(fd);
+  return 0;
+}
+
+int main()
+{
+  this_device_path_is_keyboard(DEVICE_PATH);
   return 0;
 }
