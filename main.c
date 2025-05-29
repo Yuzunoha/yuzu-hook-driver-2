@@ -48,14 +48,6 @@ void send_key(int uinput_fd, int keycode)
     ev.code = keycode;
     ev.value = 1; // key press
     write(uinput_fd, &ev, sizeof(ev));
-
-    ev.value = 0; // key release
-    write(uinput_fd, &ev, sizeof(ev));
-
-    ev.type = EV_SYN;
-    ev.code = SYN_REPORT;
-    ev.value = 0;
-    write(uinput_fd, &ev, sizeof(ev));
 }
 
 int main()
@@ -66,32 +58,16 @@ int main()
         perror("event device open");
         return 1;
     }
-
     int uinput_fd = setup_uinput();
-
-    bool muhenkan_pressed = false;
-    bool j_pressed = false;
-
     struct input_event ev;
-
     while (read(fd, &ev, sizeof(ev)) > 0)
     {
         if (ev.type == EV_KEY)
         {
             printf("ev.code: %d\n", ev.code);
-
-            // if (muhenkan_pressed && j_pressed) {
-            if (j_pressed)
-            {
-                printf("無変換+J detected: Sending KEY_DOWN\n");
-                send_key(uinput_fd, KEY_DOWN);
-                // 押しっぱなしの間連打したくないならどちらかのフラグをfalseに
-                muhenkan_pressed = false;
-                j_pressed = false;
-            }
+            send_key(uinput_fd, 'A');
         }
     }
-
     ioctl(uinput_fd, UI_DEV_DESTROY);
     close(uinput_fd);
     close(fd);
