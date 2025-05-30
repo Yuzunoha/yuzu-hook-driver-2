@@ -87,6 +87,10 @@ int main()
 
   printf("Virtual keyboard device created\n");
 
+  usleep(KEY_DELAY);
+  usleep(KEY_DELAY);
+  usleep(KEY_DELAY);
+
   // キーを順番に押す
   for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++)
   {
@@ -94,12 +98,12 @@ int main()
     write_wrap(fd, EV_KEY, keys[i], 1);
     // 同期イベント。これがないと直前のイベントが処理されない。
     write_wrap(fd, EV_SYN, SYN_REPORT, 0);
-    // 1秒待機
-    usleep(KEY_DELAY);
     // キーを離す
     write_wrap(fd, EV_KEY, keys[i], 0);
     // 同期イベント。これがないと直前のイベントが処理されない。
     write_wrap(fd, EV_SYN, SYN_REPORT, 0);
+    // 1秒待機
+    usleep(KEY_DELAY);
   }
 
   printf("Destroying virtual keyboard device...\n");
