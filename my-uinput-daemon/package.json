@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "exclusive-keyboard": "^0.1.1",
-    "koffi": "^2.11.0",
-    "ref-array-di": "^1.2.2",
-    "ref-napi": "^3.0.3",
-    "ref-struct-di": "^1.1.1"
-  }
-}
