@@ -22,7 +22,6 @@ int main()
 {
   int fd;
   struct uinput_user_dev uidev;
-  struct timespec ts;
 
   printf("Starting virtual keyboard program...\n");
 
