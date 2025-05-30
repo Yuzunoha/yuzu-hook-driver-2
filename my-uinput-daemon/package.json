@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "exclusive-keyboard": "^0.1.1",
+    "koffi": "^2.11.0",
     "ref-napi": "^3.0.3"
   }
 }
