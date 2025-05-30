@@ -9,11 +9,19 @@
 
 #define KEY_DELAY 1000000 // 1秒の遅延
 
+void write_wrap(int fd, unsigned short type, unsigned short code, signed int value)
+{
+  struct input_event ev;
+  ev.type = type;
+  ev.code = code;
+  ev.value = value;
+  write(fd, &ev, sizeof(ev));
+}
+
 int main()
 {
   int fd;
   struct uinput_user_dev uidev;
-  struct input_event ev;
   struct timespec ts;
 
   printf("Starting virtual keyboard program...\n");
@@ -84,35 +92,15 @@ int main()
   for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++)
   {
     // キーを押す
-    ev.type = EV_KEY;
-    ev.code = keys[i];
-    ev.value = 1; // 押す
-    write(fd, &ev, sizeof(ev));
-
+    write_wrap(fd, EV_KEY, keys[i], 1);
     // 同期イベント。これがないと直前のイベントが処理されない。
-    ev.type = EV_SYN;
-    ev.code = SYN_REPORT;
-    ev.value = 0;
-    write(fd, &ev, sizeof(ev));
-
-    printf("Pressed key %d\n", keys[i]);
-
+    write_wrap(fd, EV_SYN, SYN_REPORT, 0);
     // 1秒待機
     usleep(KEY_DELAY);
-
     // キーを離す
-    ev.type = EV_KEY;
-    ev.code = keys[i];
-    ev.value = 0; // 離す
-    write(fd, &ev, sizeof(ev));
-
+    write_wrap(fd, EV_KEY, keys[i], 0);
     // 同期イベント。これがないと直前のイベントが処理されない。
-    ev.type = EV_SYN;
-    ev.code = SYN_REPORT;
-    ev.value = 0;
-    write(fd, &ev, sizeof(ev));
-
-    printf("Released key %d\n", keys[i]);
+    write_wrap(fd, EV_SYN, SYN_REPORT, 0);
   }
 
   printf("Destroying virtual keyboard device...\n");
