@@ -114,7 +114,8 @@ function sendKeyEvent(keyCode, keyValue) {
   ev.ref().copy(evBuffer);
   ev.ref().copy(evBuffer, 0, 0, input_event.size);
 
-  process.stdout.write(evBuffer);}
+  process.stdout.write(evBuffer);
+}
 
 // 7. 使い方例：カーソルキー「上」を押して離す
 sendKeyEvent(KEY_UP, 1); // 押す
