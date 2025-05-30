@@ -1,3 +1,5 @@
+const fs = require('fs');
+const fd = fs.openSync('/dev/uinput', 'w');
 const ref = require('ref-napi');
 const int = ref.types.int;
 const intPtr = ref.refType(int);
