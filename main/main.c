@@ -18,6 +18,33 @@ void write_wrap(int fd, unsigned short type, unsigned short code, signed int val
   write(fd, &ev, sizeof(ev));
 }
 
+/**
+ * 同期イベントを実行する関数。これがないと直前のイベントが処理されない
+ */
+void ev_syn_wrap(int fd)
+{
+  write_wrap(fd, EV_SYN, SYN_REPORT, 0);
+}
+
+/**
+ * キーを押す、同期イベント込みの関数
+ */
+void key_down_with_sync(int fd, unsigned short code)
+{
+  write_wrap(fd, EV_KEY, code, 1);
+  ev_syn_wrap(fd);
+}
+
+/**
+ * キーを上げる、同期イベント込みの関数
+ */
+void key_up_with_sync(int fd, unsigned short code)
+{
+  // キーを離す
+  write_wrap(fd, EV_KEY, code, 0);
+  ev_syn_wrap(fd);
+}
+
 int main()
 {
   int fd;
@@ -87,21 +114,16 @@ int main()
 
   printf("Virtual keyboard device created\n");
 
-  usleep(KEY_DELAY);
-  usleep(KEY_DELAY);
-  usleep(KEY_DELAY);
+  // アプリ切り替えの猶予時間
+  usleep(KEY_DELAY * 3);
 
   // キーを順番に押す
   for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++)
   {
     // キーを押す
-    write_wrap(fd, EV_KEY, keys[i], 1);
-    // 同期イベント。これがないと直前のイベントが処理されない。
-    write_wrap(fd, EV_SYN, SYN_REPORT, 0);
+    key_down_with_sync(fd, keys[i]);
     // キーを離す
-    write_wrap(fd, EV_KEY, keys[i], 0);
-    // 同期イベント。これがないと直前のイベントが処理されない。
-    write_wrap(fd, EV_SYN, SYN_REPORT, 0);
+    key_up_with_sync(fd, keys[i]);
     // 1秒待機
     usleep(KEY_DELAY);
   }
