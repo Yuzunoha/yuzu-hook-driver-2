@@ -54,6 +54,15 @@ void key_up_with_sync(int fd, unsigned short code)
   key_down_or_up_with_sync(fd, code, 0);
 }
 
+void close_wrap(int fd, char *msg, char *err_msg)
+{
+  if (0 <= fd)
+  {
+    close(fd);
+  }
+  fprintf(stderr, "Error: Failed to open /dev/uinput\n");
+}
+
 int main()
 {
   int fd;
@@ -66,7 +75,6 @@ int main()
   if (fd < 0)
   {
     fprintf(stderr, "Error: Failed to open /dev/uinput\n");
-    perror("open");
     return 1;
   }
 
@@ -84,7 +92,6 @@ int main()
   if (ioctl(fd, UI_SET_EVBIT, EV_KEY) < 0)
   {
     fprintf(stderr, "Error: Failed to set EV_KEY\n");
-    perror("ioctl");
     close(fd);
     return 1;
   }
@@ -96,7 +103,6 @@ int main()
     if (ioctl(fd, UI_SET_KEYBIT, keys[i]) < 0)
     {
       fprintf(stderr, "Error: Failed to set key %d\n", keys[i]);
-      perror("ioctl");
       close(fd);
       return 1;
     }
@@ -108,7 +114,6 @@ int main()
   if (write(fd, &uidev, sizeof(uidev)) < 0)
   {
     fprintf(stderr, "Error: Failed to write uinput device data\n");
-    perror("write");
     close(fd);
     return 1;
   }
@@ -116,7 +121,6 @@ int main()
   if (ioctl(fd, UI_DEV_CREATE) < 0)
   {
     fprintf(stderr, "Error: Failed to create uinput device\n");
-    perror("ioctl");
     close(fd);
     return 1;
   }
@@ -143,7 +147,6 @@ int main()
   if (ioctl(fd, UI_DEV_DESTROY) < 0)
   {
     fprintf(stderr, "Error: Failed to destroy uinput device\n");
-    perror("ioctl");
   }
 
   close(fd);
