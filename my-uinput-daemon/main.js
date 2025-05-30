@@ -2,7 +2,7 @@ const fs = require('fs');
 const fd = fs.openSync('/dev/uinput', 'w');
 const ref = require('ref-napi');
 const koffi = require('koffi');
-const libuinput = koffi.load('libinput.so'); // 必要に応じてパス指定
+const libinput = koffi.load('libinput.so');
 const int = ref.types.int;
 const intPtr = ref.refType(int);
 
