@@ -54,33 +54,41 @@ void key_up_with_sync(int fd, unsigned short code)
   key_down_or_up_with_sync(fd, code, 0);
 }
 
-void close_wrap(int fd, char *msg, char *err_msg)
+/**
+ * プログラム終了関数
+ */
+int finish_program(int fd, char *err_msg)
 {
   if (0 <= fd)
   {
     close(fd);
   }
-  fprintf(stderr, "Error: Failed to open /dev/uinput\n");
+
+  if (NULL != err_msg)
+  {
+    fprintf(stderr, err_msg);
+    return 1;
+  }
+
+  printf("Program finished\n");
+  return 0;
 }
 
 int main()
 {
-  int fd;
-  struct uinput_user_dev uidev;
-
   printf("Starting virtual keyboard program...\n");
 
   // uinputデバイスを開く
-  fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+  int fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
   if (fd < 0)
   {
-    fprintf(stderr, "Error: Failed to open /dev/uinput\n");
-    return 1;
+    return finish_program(fd, "Error: Failed to open /dev/uinput\n");
   }
 
   printf("Successfully opened /dev/uinput\n");
 
   // uinputデバイスの設定
+  struct uinput_user_dev uidev;
   memset(&uidev, 0, sizeof(uidev));
   snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "Virtual Keyboard");
   uidev.id.bustype = BUS_USB;
@@ -91,9 +99,7 @@ int main()
   // キーボードイベントを設定
   if (ioctl(fd, UI_SET_EVBIT, EV_KEY) < 0)
   {
-    fprintf(stderr, "Error: Failed to set EV_KEY\n");
-    close(fd);
-    return 1;
+    return finish_program(fd, "Error: Failed to set EV_KEY\n");
   }
 
   // 複数のキーを設定
@@ -102,9 +108,7 @@ int main()
   {
     if (ioctl(fd, UI_SET_KEYBIT, keys[i]) < 0)
     {
-      fprintf(stderr, "Error: Failed to set key %d\n", keys[i]);
-      close(fd);
-      return 1;
+      return finish_program(fd, "Error: Failed to set key\n");
     }
   }
 
@@ -113,16 +117,12 @@ int main()
   // デバイスを作成
   if (write(fd, &uidev, sizeof(uidev)) < 0)
   {
-    fprintf(stderr, "Error: Failed to write uinput device data\n");
-    close(fd);
-    return 1;
+    return finish_program(fd, "Error: Failed to write uinput device data\n");
   }
 
   if (ioctl(fd, UI_DEV_CREATE) < 0)
   {
-    fprintf(stderr, "Error: Failed to create uinput device\n");
-    close(fd);
-    return 1;
+    return finish_program(fd, "Error: Failed to create uinput device\n");
   }
 
   printf("Virtual keyboard device created\n");
@@ -146,11 +146,8 @@ int main()
   // デバイスを削除
   if (ioctl(fd, UI_DEV_DESTROY) < 0)
   {
-    fprintf(stderr, "Error: Failed to destroy uinput device\n");
+    return finish_program(fd, "Error: Failed to destroy uinput device\n");
   }
 
-  close(fd);
-  printf("Program finished\n");
-
-  return 0;
+  return finish_program(fd, NULL);
 }
