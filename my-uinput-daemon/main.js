@@ -52,11 +52,12 @@ const uinput_user_dev = Struct({
 
 // `ioctl` 呼び出し
 const libc = koffi.load('libc.so.6');
-libc.func('int ioctl(int fd, ulong request, ...)', 'ioctl');
+// ioctl を3引数で定義（int の値を渡すバージョン）
+const ioctl = libc.func('int ioctl(int fd, unsigned long request, int value)');
 
 // イベントを有効化
-libc.ioctl(fd, UI_SET_EVBIT, EV_KEY);
-libc.ioctl(fd, UI_SET_KEYBIT, KEY_UP);
+ioctl(fd, UI_SET_EVBIT, EV_KEY);
+ioctl(fd, UI_SET_KEYBIT, KEY_UP);
 
 // デバイス情報を書き込み
 const dev = new uinput_user_dev();
@@ -70,7 +71,7 @@ fs.writeSync(fd, dev.ref());
 fs.writeSync(fd, Buffer.alloc(4096 - dev.ref().length)); // パディング
 
 // 仮想キーボード作成
-libc.ioctl(fd, UI_DEV_CREATE);
+ioctl(fd, UI_DEV_CREATE);
 console.log('仮想キーボード作成完了');
 
 // KEY_UP イベント送信（押す）
@@ -98,7 +99,7 @@ console.log('↑キー送信完了！');
 
 // 終了するなら↓も（一定時間後に）
 setTimeout(() => {
-  libc.ioctl(fd, UI_DEV_DESTROY);
+  ioctl(fd, UI_DEV_DESTROY);
   console.log('仮想デバイス削除');
   fs.closeSync(fd);
 }, 3000);
