@@ -89,7 +89,7 @@ int main()
     ev.value = 1; // 押す
     write(fd, &ev, sizeof(ev));
 
-    // 同期イベント
+    // 同期イベント。これがないと直前のイベントが処理されない。
     ev.type = EV_SYN;
     ev.code = SYN_REPORT;
     ev.value = 0;
@@ -106,7 +106,7 @@ int main()
     ev.value = 0; // 離す
     write(fd, &ev, sizeof(ev));
 
-    // 同期イベント
+    // 同期イベント。これがないと直前のイベントが処理されない。
     ev.type = EV_SYN;
     ev.code = SYN_REPORT;
     ev.value = 0;
