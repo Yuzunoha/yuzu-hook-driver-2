@@ -9,6 +9,9 @@
 
 #define KEY_DELAY 1000000 // 1秒の遅延
 
+/**
+ * write関数のwrapper
+ */
 void write_wrap(int fd, unsigned short type, unsigned short code, signed int value)
 {
   struct input_event ev;
@@ -27,12 +30,20 @@ void ev_syn_wrap(int fd)
 }
 
 /**
- * キーを押す、同期イベント込みの関数
+ * キーを下げる(value:1)または上げる(value:0)、同期イベント込みの関数
+ */
+void key_down_or_up_with_sync(int fd, unsigned short code, signed int value)
+{
+  write_wrap(fd, EV_KEY, code, value);
+  ev_syn_wrap(fd);
+}
+
+/**
+ * キーを下げる、同期イベント込みの関数
  */
 void key_down_with_sync(int fd, unsigned short code)
 {
-  write_wrap(fd, EV_KEY, code, 1);
-  ev_syn_wrap(fd);
+  key_down_or_up_with_sync(fd, code, 1);
 }
 
 /**
@@ -40,9 +51,7 @@ void key_down_with_sync(int fd, unsigned short code)
  */
 void key_up_with_sync(int fd, unsigned short code)
 {
-  // キーを離す
-  write_wrap(fd, EV_KEY, code, 0);
-  ev_syn_wrap(fd);
+  key_down_or_up_with_sync(fd, code, 0);
 }
 
 int main()
