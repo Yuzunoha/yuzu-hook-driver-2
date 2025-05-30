@@ -66,10 +66,9 @@ dev.ff_effects_max = 0;
 // absmaxなどはゼロ初期化されたままでOK
 
 // 4. 構造体のバッファを4096バイトにパディングして書き込み
-const devBuffer = Buffer.alloc(4096);
 dev.ref().copy(devBuffer, 0, 0, dev.ref().length);
 
-fs.writeSync(fd, devBuffer);
+process.stdout.write(devBuffer);
 
 // 5. デバイス作成
 ioctl(fd, UI_DEV_CREATE, 0);
