@@ -57,7 +57,7 @@ void key_up_with_sync(int fd, unsigned short code)
 /**
  * プログラム終了関数
  */
-int finish_program(int fd, char *err_msg)
+int finish_program(int fd, const char *err_msg)
 {
   if (0 <= fd)
   {
@@ -66,7 +66,7 @@ int finish_program(int fd, char *err_msg)
 
   if (NULL != err_msg)
   {
-    fprintf(stderr, err_msg);
+    fprintf(stderr, "%s", err_msg);
     return 1;
   }
 
