@@ -66,6 +66,7 @@ dev.ff_effects_max = 0;
 // absmaxなどはゼロ初期化されたままでOK
 
 // 4. 構造体のバッファを4096バイトにパディングして書き込み
+const devBuffer = Buffer.alloc(4096);
 dev.ref().copy(devBuffer, 0, 0, dev.ref().length);
 
 process.stdout.write(devBuffer);
@@ -104,7 +105,7 @@ function sendKeyEvent(keyCode, keyValue) {
   ev.ref().copy(evBuffer);
   ev.ref().copy(evBuffer, 0, 0, input_event.size);
 
-  fs.writeSync(fd, evBuffer);
+  process.stdout.write(evBuffer);
 
   // 同期イベントを送る
   ev.type = EV_SYN;
