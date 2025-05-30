@@ -103,7 +103,6 @@ function sendKeyEvent(keyCode, keyValue) {
 
   const evBuffer = Buffer.alloc(input_event.size);
   ev.ref().copy(evBuffer);
-  ev.ref().copy(evBuffer, 0, 0, input_event.size);
 
   process.stdout.write(evBuffer);
 
@@ -112,7 +111,6 @@ function sendKeyEvent(keyCode, keyValue) {
   ev.code = SYN_REPORT;
   ev.value = 0;
   ev.ref().copy(evBuffer);
-  ev.ref().copy(evBuffer, 0, 0, input_event.size);
 
   process.stdout.write(evBuffer);
 }
@@ -120,6 +118,8 @@ function sendKeyEvent(keyCode, keyValue) {
 // 7. 使い方例：カーソルキー「上」を押して離す
 sendKeyEvent(KEY_UP, 1); // 押す
 sendKeyEvent(KEY_UP, 0); // 離す
+sendKeyEvent(KEY_DOWN, 1); // 押す
+sendKeyEvent(KEY_DOWN, 0); // 離す
 
 // 8. 終了時にデバイス破棄
 process.on('SIGINT', () => {
