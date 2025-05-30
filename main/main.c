@@ -47,7 +47,7 @@ int main()
   }
 
   // 複数のキーを設定
-  const int keys[] = {KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_ENTER};
+  const int keys[] = {KEY_A, KEY_DOWN, KEY_B, KEY_C, KEY_D, KEY_E, KEY_ENTER};
   for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++)
   {
     if (ioctl(fd, UI_SET_KEYBIT, keys[i]) < 0)
