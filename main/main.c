@@ -102,11 +102,10 @@ int main()
     return finish_program(fd, "Error: Failed to set EV_KEY\n");
   }
 
-  // 複数のキーを設定
-  const int keys[] = {KEY_A, KEY_DOWN, KEY_B, KEY_C, KEY_D, KEY_E, KEY_ENTER};
-  for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++)
+  // この仮想キーボードfdで全てのキーを扱えるようにする
+  for (int i = 0; i < KEY_MAX; i++)
   {
-    if (ioctl(fd, UI_SET_KEYBIT, keys[i]) < 0)
+    if (ioctl(fd, UI_SET_KEYBIT, i) < 0)
     {
       return finish_program(fd, "Error: Failed to set key\n");
     }
@@ -131,6 +130,7 @@ int main()
   usleep(KEY_DELAY * 3);
 
   // キーを順番に押す
+  const int keys[] = {KEY_A, KEY_DOWN, KEY_B, KEY_C, KEY_D, KEY_E, KEY_ENTER};
   for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++)
   {
     // キーを押す
