@@ -19,6 +19,9 @@ int main()
     return 1;
   }
 
+  // キーボードを "つかむ"
+  ioctl(input_fd, EVIOCGRAB, 1);
+
   // uinput の準備
   int uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
   if (uinput_fd < 0)
@@ -59,6 +62,8 @@ int main()
     write(uinput_fd, &ev, sizeof(ev));
   }
 
+  // キーボードを "離す"
+  ioctl(input_fd, EVIOCGRAB, 0);
   // クリーンアップ
   ioctl(uinput_fd, UI_DEV_DESTROY);
   close(uinput_fd);
