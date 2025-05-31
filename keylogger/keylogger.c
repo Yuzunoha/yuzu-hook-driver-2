@@ -22,16 +22,10 @@ int main()
 
     while (1)
     {
-        ssize_t n = read(fd, &ev, sizeof(struct input_event));
-        if (n == (ssize_t)sizeof(struct input_event))
+        read(fd, &ev, sizeof(struct input_event));
+        if (ev.type == EV_KEY)
         {
-            if (ev.type == EV_KEY)
-            {
-                printf("Key %d %s\n", ev.code,
-                       ev.value == 0 ? "RELEASED" : ev.value == 1 ? "PRESSED"
-                                                : ev.value == 2   ? "REPEATED"
-                                                                  : "UNKNOWN");
-            }
+            printf("{ev.code: %d, ev.value: %d}\n", ev.code, ev.value);
         }
     }
 
