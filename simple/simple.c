@@ -109,9 +109,6 @@ int main()
     write(g_uinput_fd, &ev, sizeof(ev));
   }
 
-  // クリーンアップ
-  ioctl(g_uinput_fd, UI_DEV_DESTROY);
-  close(g_uinput_fd);
-  close(g_input_fd);
+  cleanup_and_exit();
   return 0;
 }
