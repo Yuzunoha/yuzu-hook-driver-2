@@ -13,6 +13,28 @@ int g_input_fd;
 // 仮想の入力デバイス
 int g_uinput_fd;
 
+void release_all_keys(int fd)
+{
+  struct input_event event;
+  if (fd <= 0)
+  {
+    return;
+  }
+  gettimeofday(&event.time, NULL);
+  event.type = EV_KEY;
+  int j = 0;
+  for (j = 0; j < 255; j++)
+  {
+    event.code = j;
+    event.value = 0;
+    write(fd, &event, sizeof(event));
+  }
+  event.type = EV_SYN;
+  event.code = SYN_REPORT;
+  event.value = 0;
+  write(fd, &event, sizeof(event));
+}
+
 // プログラム終了時に呼ばれるべき後始末関数
 void cleanup_and_exit()
 {
@@ -35,6 +57,11 @@ int main()
     perror("open input");
     return 1;
   }
+
+  // キーボードを "つかむ"
+  sleep(1);
+  release_all_keys(g_input_fd);
+  ioctl(g_input_fd, EVIOCGRAB, 1);
 
   // uinput の準備
   g_uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
