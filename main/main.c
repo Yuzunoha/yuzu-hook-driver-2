@@ -74,6 +74,22 @@ int finish_program(int fd, const char *err_msg)
   return 0;
 }
 
+/**
+ * uidev(入力のための仮想キーボード)を作成して返却する関数
+ */
+struct uinput_user_dev create_uidev()
+{
+  // uinputデバイスの設定
+  struct uinput_user_dev uidev;
+  memset(&uidev, 0, sizeof(uidev));
+  snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "Virtual Keyboard");
+  uidev.id.bustype = BUS_USB;
+  uidev.id.vendor = 0x1;
+  uidev.id.product = 0x1;
+  uidev.id.version = 1;
+  return uidev;
+}
+
 int main()
 {
   printf("Starting virtual keyboard program...\n");
@@ -88,13 +104,7 @@ int main()
   printf("Successfully opened /dev/uinput\n");
 
   // uinputデバイスの設定
-  struct uinput_user_dev uidev;
-  memset(&uidev, 0, sizeof(uidev));
-  snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "Virtual Keyboard");
-  uidev.id.bustype = BUS_USB;
-  uidev.id.vendor = 0x1;
-  uidev.id.product = 0x1;
-  uidev.id.version = 1;
+  struct uinput_user_dev uidev = create_uidev();
 
   // キーボードイベントを設定
   if (ioctl(fd, UI_SET_EVBIT, EV_KEY) < 0)
