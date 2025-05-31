@@ -29,8 +29,8 @@ int main()
   struct input_event ev;
 
   // 実キーボードのファイル（event4）を読み込み専用で開く
-  int input_fd = open("/dev/input/event4", O_RDONLY);
-  if (input_fd < 0)
+  g_input_fd = open("/dev/input/event4", O_RDONLY);
+  if (g_input_fd < 0)
   {
     perror("open input");
     return 1;
@@ -71,7 +71,7 @@ int main()
   // バイパスループ
   while (1)
   {
-    ssize_t n = read(input_fd, &ev, sizeof(ev));
+    ssize_t n = read(g_input_fd, &ev, sizeof(ev));
     if (n != sizeof(ev))
     {
       perror("read input");
@@ -85,6 +85,6 @@ int main()
   // クリーンアップ
   ioctl(uinput_fd, UI_DEV_DESTROY);
   close(uinput_fd);
-  close(input_fd);
+  close(g_input_fd);
   return 0;
 }
