@@ -104,9 +104,10 @@ int main()
 
   // 複数のキーを設定
   const int keys[] = {KEY_A, KEY_DOWN, KEY_B, KEY_C, KEY_D, KEY_E, KEY_ENTER};
-  for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++)
+  // たいていのキーはこれで有効化される。上限をKEY_MAXにしてループすると動かなくなる。
+  for (int i = 0; i < 256; i++)
   {
-    if (ioctl(fd, UI_SET_KEYBIT, keys[i]) < 0)
+    if (ioctl(fd, UI_SET_KEYBIT, i) < 0)
     {
       return finish_program(fd, "Error: Failed to set key\n");
     }
