@@ -98,14 +98,12 @@ int main()
   // バイパスループ
   while (1)
   {
-    ssize_t n = read(g_input_fd, &ev, sizeof(ev));
-    if (n != sizeof(ev))
-    {
-      perror("read input");
-      break;
-    }
-
+    read(g_input_fd, &ev, sizeof(ev));
     // そのままuinputに渡す（time含めてOK）
+    if (ev.code == KEY_I)
+    {
+      ev.code = KEY_O;
+    }
     write(g_uinput_fd, &ev, sizeof(ev));
   }
 
