@@ -103,7 +103,7 @@ int main()
 
   printf("Successfully opened /dev/uinput\n");
 
-  // uinputデバイスの設定
+  // uinputデバイスを作成する
   struct uinput_user_dev uidev = create_uidev();
 
   // キーボードイベントを設定
@@ -112,9 +112,7 @@ int main()
     return finish_program(fd, "Error: Failed to set EV_KEY\n");
   }
 
-  // 複数のキーを設定
-  const int keys[] = {KEY_A, KEY_DOWN, KEY_B, KEY_C, KEY_D, KEY_E, KEY_ENTER};
-  // たいていのキーはこれで有効化される。上限をKEY_MAXにしてループすると動かなくなる。
+  // キーを有効化する。たいていのキーはこれで有効化される。上限をKEY_MAXにしてループすると動かなくなる。
   for (int i = 0; i < 256; i++)
   {
     if (ioctl(fd, UI_SET_KEYBIT, i) < 0)
@@ -142,6 +140,7 @@ int main()
   usleep(KEY_DELAY * 3);
 
   // キーを順番に押す
+  const int keys[] = {KEY_A, KEY_DOWN, KEY_B, KEY_C, KEY_D, KEY_E, KEY_ENTER};
   for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++)
   {
     // キーを押す
