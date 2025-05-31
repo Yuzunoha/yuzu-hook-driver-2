@@ -37,18 +37,18 @@ int main()
   }
 
   // uinput の準備
-  int uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
-  if (uinput_fd < 0)
+  g_uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+  if (g_uinput_fd < 0)
   {
     perror("open uinput");
     return 1;
   }
 
   // 必要なイベント種別とコードを登録（例: EV_KEY 全体）
-  ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY);
+  ioctl(g_uinput_fd, UI_SET_EVBIT, EV_KEY);
   for (int i = 0; i < 256; ++i)
   {
-    ioctl(uinput_fd, UI_SET_KEYBIT, i);
+    ioctl(g_uinput_fd, UI_SET_KEYBIT, i);
   }
 
   struct uinput_user_dev uidev;
@@ -59,8 +59,8 @@ int main()
   uidev.id.product = 0xfedc;
   uidev.id.version = 1;
 
-  write(uinput_fd, &uidev, sizeof(uidev));
-  ioctl(uinput_fd, UI_DEV_CREATE);
+  write(g_uinput_fd, &uidev, sizeof(uidev));
+  ioctl(g_uinput_fd, UI_DEV_CREATE);
 
   // シグナルハンドラ設定
   signal(SIGINT, cleanup_and_exit);
@@ -79,12 +79,12 @@ int main()
     }
 
     // そのままuinputに渡す（time含めてOK）
-    write(uinput_fd, &ev, sizeof(ev));
+    write(g_uinput_fd, &ev, sizeof(ev));
   }
 
   // クリーンアップ
-  ioctl(uinput_fd, UI_DEV_DESTROY);
-  close(uinput_fd);
+  ioctl(g_uinput_fd, UI_DEV_DESTROY);
+  close(g_uinput_fd);
   close(g_input_fd);
   return 0;
 }
