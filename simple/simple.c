@@ -32,14 +32,15 @@ void ev_syn_wrap(int fd)
 // 指定されたデバイスのすべてのキーを上げる
 void release_all_keys(int fd)
 {
-  if (0 < fd)
+  if (fd <= 0)
   {
-    for (int j = 0; j < 255; j++)
-    {
-      write_wrap(fd, EV_KEY, j, 0);
-    }
-    ev_syn_wrap(fd);
+    return;
   }
+  for (int j = 0; j < 255; j++)
+  {
+    write_wrap(fd, EV_KEY, j, 0);
+  }
+  ev_syn_wrap(fd);
 }
 
 // プログラム終了時に呼ばれるべき後始末関数
