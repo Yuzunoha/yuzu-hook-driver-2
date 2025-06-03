@@ -1,7 +1,7 @@
 #include <linux/input.h>
 #include <stdio.h>
 
-// Linuxにおけるvalueが表すキーの状態 (0,1,2) = (離された,押された,押し続けている)
+// Linuxにおけるvalueが表すキーの状態 (0,1,2) = (離された,押された,押し続け)
 int g_value_muhenkan;
 
 // 無変換押下中の各キーの振る舞いを決める関数
@@ -24,6 +24,12 @@ void event_modifier_for_muhenkan_pressed(struct input_event *ev)
     case KEY_O:
         ev->code = KEY_BACKSPACE;
         break;
+    case KEY_P:
+        ev->code = KEY_DELETE;
+        break;
+    case KEY_M:
+        ev->code = KEY_ENTER;
+        break;
     default:
         break;
     }
@@ -44,6 +50,13 @@ void event_modifier_in_loop(struct input_event *ev)
     {
         // 変換キーは右ctrlにリマップする
         ev->code = KEY_RIGHTCTRL;
+        return;
+    }
+
+    if (ev->code == KEY_KATAKANAHIRAGANA)
+    {
+        // カタカナキーは右Altにリマップする
+        ev->code = KEY_RIGHTALT;
         return;
     }
 
