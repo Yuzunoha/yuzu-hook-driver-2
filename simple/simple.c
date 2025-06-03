@@ -8,6 +8,9 @@
 #include <errno.h>
 #include <signal.h>
 
+// 外部関数
+void event_modifier_in_loop(struct input_event *ev);
+
 // 本物の入力デバイス
 int g_input_fd;
 
@@ -121,12 +124,11 @@ int main()
   struct input_event ev;
   while (1)
   {
+    // イベントを読む
     read(g_input_fd, &ev, sizeof(ev));
-    // そのままuinputに渡す（time含めてOK）
-    if (ev.code == KEY_I)
-    {
-      ev.code = KEY_O;
-    }
+    // イベントに変換をかける
+    event_modifier_in_loop(&ev);
+    // イベントを書く
     write(g_uinput_fd, &ev, sizeof(ev));
   }
 
