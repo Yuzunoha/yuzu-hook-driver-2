@@ -68,10 +68,17 @@ void cleanup_and_exit()
   exit(0);
 }
 
+// 後始末関数をシグナルハンドラに登録する関数
+void setup_all_signal_handler_for_cleanup()
+{
+  signal(SIGINT, cleanup_and_exit);
+  signal(SIGTERM, cleanup_and_exit);
+  signal(SIGHUP, cleanup_and_exit);
+  signal(SIGQUIT, cleanup_and_exit);
+}
+
 int main()
 {
-  struct input_event ev;
-
   // 実キーボードのファイル（event4）を読み込み専用で開く
   g_input_fd = open("/dev/input/event4", O_RDONLY);
   if (g_input_fd < 0)
@@ -108,12 +115,10 @@ int main()
   ioctl(g_uinput_fd, UI_DEV_CREATE);
 
   // シグナルハンドラを設定する
-  signal(SIGINT, cleanup_and_exit);
-  signal(SIGTERM, cleanup_and_exit);
-  signal(SIGHUP, cleanup_and_exit);
-  signal(SIGQUIT, cleanup_and_exit);
+  setup_all_signal_handler_for_cleanup();
 
   // ループ
+  struct input_event ev;
   while (1)
   {
     read(g_input_fd, &ev, sizeof(ev));
