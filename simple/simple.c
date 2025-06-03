@@ -10,6 +10,7 @@
 
 // 本物の入力デバイス
 int g_input_fd;
+
 // 仮想の入力デバイス
 int g_uinput_fd;
 
@@ -41,6 +42,19 @@ void release_all_keys(int fd)
     write_wrap(fd, EV_KEY, j, 0);
   }
   ev_syn_wrap(fd);
+}
+
+// uidevを作成して設定して返却する関数
+struct uinput_user_dev create_uidev()
+{
+  struct uinput_user_dev uidev;
+  memset(&uidev, 0, sizeof(uidev));
+  snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "my-virtual-keyboard");
+  uidev.id.bustype = BUS_USB;
+  uidev.id.vendor = 0x1234;
+  uidev.id.product = 0xfedc;
+  uidev.id.version = 1;
+  return uidev;
 }
 
 // プログラム終了時に呼ばれるべき後始末関数
@@ -86,24 +100,20 @@ int main()
     ioctl(g_uinput_fd, UI_SET_KEYBIT, i);
   }
 
-  struct uinput_user_dev uidev;
-  memset(&uidev, 0, sizeof(uidev));
-  snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "my-virtual-keyboard");
-  uidev.id.bustype = BUS_USB;
-  uidev.id.vendor = 0x1234;
-  uidev.id.product = 0xfedc;
-  uidev.id.version = 1;
+  // uidevを作成する
+  struct uinput_user_dev uidev = create_uidev();
 
+  // uidevをuinputに紐付ける
   write(g_uinput_fd, &uidev, sizeof(uidev));
   ioctl(g_uinput_fd, UI_DEV_CREATE);
 
-  // シグナルハンドラ設定
+  // シグナルハンドラを設定する
   signal(SIGINT, cleanup_and_exit);
   signal(SIGTERM, cleanup_and_exit);
   signal(SIGHUP, cleanup_and_exit);
   signal(SIGQUIT, cleanup_and_exit);
 
-  // バイパスループ
+  // ループ
   while (1)
   {
     read(g_input_fd, &ev, sizeof(ev));
@@ -115,6 +125,8 @@ int main()
     write(g_uinput_fd, &ev, sizeof(ev));
   }
 
+  // 念の為クリーンアップ。通常このアプリは停止信号を受信する。
+  // その場合ここには来ないが、シグナルハンドラによってcleanは実行される。
   cleanup_and_exit();
   return 0;
 }
