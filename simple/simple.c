@@ -13,26 +13,33 @@ int g_input_fd;
 // 仮想の入力デバイス
 int g_uinput_fd;
 
+// write関数のwrapper
+void write_wrap(int fd, unsigned short type, unsigned short code, signed int value)
+{
+  struct input_event ev;
+  ev.type = type;
+  ev.code = code;
+  ev.value = value;
+  write(fd, &ev, sizeof(ev));
+}
+
+// 同期イベントを実行する関数。これがないと直前のイベントが処理されない
+void ev_syn_wrap(int fd)
+{
+  write_wrap(fd, EV_SYN, SYN_REPORT, 0);
+}
+
+// 指定されたデバイスのすべてのキーを上げる
 void release_all_keys(int fd)
 {
-  struct input_event event;
-  if (fd <= 0)
+  if (0 < fd)
   {
-    return;
+    for (int j = 0; j < 255; j++)
+    {
+      write_wrap(fd, EV_KEY, j, 0);
+    }
+    ev_syn_wrap(fd);
   }
-  gettimeofday(&event.time, NULL);
-  event.type = EV_KEY;
-  int j = 0;
-  for (j = 0; j < 255; j++)
-  {
-    event.code = j;
-    event.value = 0;
-    write(fd, &event, sizeof(event));
-  }
-  event.type = EV_SYN;
-  event.code = SYN_REPORT;
-  event.value = 0;
-  write(fd, &event, sizeof(event));
 }
 
 // プログラム終了時に呼ばれるべき後始末関数
