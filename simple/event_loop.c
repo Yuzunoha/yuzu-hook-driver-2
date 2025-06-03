@@ -37,11 +37,20 @@ void event_modifier_in_loop(struct input_event *ev)
         g_value_muhenkan = ev->value;
         // 無変換単体は無効化する。code 0をwriteしても無視されるだけで害はない。
         ev->code = 0;
-        // 無変換キーを無視するためのリターン
         return;
     }
+
+    if (ev->code == KEY_HENKAN)
+    {
+        // 変換キーは右ctrlにリマップする
+        ev->code = KEY_RIGHTCTRL;
+        return;
+    }
+
     if (0 < g_value_muhenkan)
     {
+        // 無変換が押されているときの振る舞いをさせる
         event_modifier_for_muhenkan_pressed(ev);
+        return;
     }
 }
