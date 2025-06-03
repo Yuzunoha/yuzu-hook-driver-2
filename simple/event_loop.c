@@ -9,6 +9,18 @@ void event_modifier_for_muhenkan_pressed(struct input_event *ev)
 {
     switch (ev->code)
     {
+    case KEY_H:
+        ev->code = KEY_LEFT;
+        break;
+    case KEY_J:
+        ev->code = KEY_DOWN;
+        break;
+    case KEY_K:
+        ev->code = KEY_UP;
+        break;
+    case KEY_L:
+        ev->code = KEY_RIGHT;
+        break;
     case KEY_O:
         ev->code = KEY_BACKSPACE;
         break;
@@ -21,11 +33,11 @@ void event_modifier_in_loop(struct input_event *ev)
 {
     if (ev->code == KEY_MUHENKAN)
     {
-        /* 無変換 */
         // 保持している無変換キーの状態を更新する
         g_value_muhenkan = ev->value;
         // 無変換単体は無効化する。code 0をwriteしても無視されるだけで害はない。
         ev->code = 0;
+        // 無変換キーを無視するためのリターン
         return;
     }
     if (0 < g_value_muhenkan)
