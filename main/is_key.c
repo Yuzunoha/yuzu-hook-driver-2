@@ -67,7 +67,7 @@ int this_device_path_is_keyboard(char *device_path)
   return result;
 }
 
-int main()
+int get_keyboard_event()
 {
   char path[32];
   for (int i = 0; i <= 30; i++)
