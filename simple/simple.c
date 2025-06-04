@@ -47,6 +47,33 @@ void release_all_keys(int fd)
   ev_syn_wrap(fd);
 }
 
+// 指定した入力デバイスに、リリースされていないキーがあれば1を返す関数
+int has_unreleased_keys(int fd)
+{
+  unsigned char key_states[KEY_MAX / 8 + 1];
+  memset(key_states, 0, sizeof(key_states));
+
+  // このサイズ分のキー情報を取得する
+  if (ioctl(fd, EVIOCGKEY(sizeof(key_states)), key_states) < 0)
+  {
+    perror("ioctl EVIOCGKEY");
+    return -1;
+  }
+
+  // 押されているキーがないか確認するループ
+  for (int i = 0; i < 255; i++)
+  {
+    if (key_states[i / 8] & (1 << (i % 8)))
+    {
+      fprintf(stderr, "Key %d is still pressed.\n", i);
+      return 1;
+    }
+  }
+
+  // 押されているキーはなかった
+  return 0;
+}
+
 // uidevを作成して設定して返却する関数
 struct uinput_user_dev create_uidev()
 {
@@ -92,7 +119,12 @@ int main()
 
   // キーボードを "つかむ"
   sleep(1);
-  release_all_keys(g_input_fd);
+  if (has_unreleased_keys(g_input_fd) > 0)
+  {
+    fprintf(stderr, "Unreleased keys detected. Exiting.\n");
+    close(g_input_fd);
+    return 1;
+  }
   ioctl(g_input_fd, EVIOCGRAB, 1);
 
   // uinput の準備
