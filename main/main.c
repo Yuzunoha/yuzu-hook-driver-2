@@ -10,6 +10,7 @@
 
 // 外部関数
 void event_modifier_in_loop(struct input_event *ev);
+void search_keyboard_event_path(char *arg);
 
 // 本物の入力デバイス
 int g_input_fd;
@@ -109,8 +110,17 @@ void setup_all_signal_handler_for_cleanup()
 
 int main()
 {
+  // キーボードイベントをサーチする
+  char keyboard_event_path[100] = {'\0'};
+  search_keyboard_event_path(keyboard_event_path);
+  if (keyboard_event_path[0] == '\0')
+  {
+    printf("no keyboard found\n");
+    return 0;
+  }
+
   // 実キーボードのファイル（event4）を読み込み専用で開く
-  g_input_fd = open("/dev/input/event4", O_RDONLY);
+  g_input_fd = open(keyboard_event_path, O_RDONLY);
   if (g_input_fd < 0)
   {
     perror("open input");

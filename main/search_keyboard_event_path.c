@@ -73,7 +73,11 @@ void search_keyboard_event_path(char *arg)
   for (int i = 0; i <= 30; i++)
   {
     snprintf(path, sizeof(path), "/dev/input/event%d", i);
-    int result = this_device_path_is_keyboard(path);
-    printf("%sはキーボードで%s\n", path, (result ? "ある" : "ない"));
+    if (this_device_path_is_keyboard(path))
+    {
+      strcpy(arg, path);
+      return;
+    }
+    // printf("%sはキーボードで%s\n", path, (result ? "ある" : "ない"));
   }
 }
