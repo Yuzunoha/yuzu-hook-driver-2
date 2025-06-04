@@ -76,5 +76,4 @@ void search_keyboard_event_path(char *arg)
     int result = this_device_path_is_keyboard(path);
     printf("%sはキーボードで%s\n", path, (result ? "ある" : "ない"));
   }
-  return 0;
 }
