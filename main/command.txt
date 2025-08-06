@@ -1,0 +1,2 @@
+# 更新のためのコマンド
+gcc *.c; sudo mv a.out /usr/local/bin/keyboard_daemon; sudo systemctl restart keyboard_daemon.service;
