@@ -67,6 +67,10 @@ void event_modifier_in_loop(struct input_event *ev)
     if ((0 < g_value_muhenkan) || muhenkan_modification_is_active)
     {
         // 無変換が押されているときの振る舞いをさせる
-        muhenkan_modification_is_active = event_modifier_for_muhenkan_pressed(ev);
+        if (event_modifier_for_muhenkan_pressed(ev))
+        {
+            // 不十分。無変換+J+Oのような同時押しで、無変換→J→Oの順に話されるとBSが送信され続ける
+            muhenkan_modification_is_active = ev->value;
+        }
     }
 }
