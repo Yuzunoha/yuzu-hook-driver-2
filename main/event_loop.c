@@ -4,8 +4,11 @@
 // Linuxにおけるvalueが表すキーの状態 (0,1,2) = (離された,押された,押し続け)
 int g_value_muhenkan;
 
-// 無変換押下中の各キーの振る舞いを決める関数
-void event_modifier_for_muhenkan_pressed(struct input_event *ev)
+// 無変換+Jキー同時押し中に無変換だけリリースされたときなどの対策のためのフラグ。
+int muhenkan_modification_is_active;
+
+// 無変換押下中の各キーの振る舞いを決める関数。defaultに入ったときのみ0を返す
+int event_modifier_for_muhenkan_pressed(struct input_event *ev)
 {
     switch (ev->code)
     {
@@ -31,8 +34,9 @@ void event_modifier_for_muhenkan_pressed(struct input_event *ev)
         ev->code = KEY_ENTER;
         break;
     default:
-        break;
+        return 0;
     }
+    return 1;
 }
 
 void event_modifier_in_loop(struct input_event *ev)
@@ -60,10 +64,9 @@ void event_modifier_in_loop(struct input_event *ev)
         return;
     }
 
-    if (0 < g_value_muhenkan)
+    if ((0 < g_value_muhenkan) || muhenkan_modification_is_active)
     {
         // 無変換が押されているときの振る舞いをさせる
-        event_modifier_for_muhenkan_pressed(ev);
-        return;
+        muhenkan_modification_is_active = event_modifier_for_muhenkan_pressed(ev);
     }
 }
