@@ -81,3 +81,23 @@ void search_keyboard_event_path(char *arg)
     // printf("%sはキーボードで%s\n", path, (result ? "ある" : "ない"));
   }
 }
+
+/**
+ * 最大8個のキーボードのパスを返却する関数
+ */
+int search_keyboard_event_paths(char paths[][32])
+{
+  const int max_count = 8;
+  char path[32];
+  int found = 0; // 見つかったキーボードの数
+  for (int i = 0; i <= 30 && found < max_count; i++)
+  {
+    snprintf(path, sizeof(path), "/dev/input/event%d", i);
+    if (this_device_path_is_keyboard(path))
+    {
+      strcpy(paths[found], path);
+      found++;
+    }
+  }
+  return found;
+}
