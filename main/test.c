@@ -11,7 +11,7 @@
 // 外部関数
 int search_keyboard_event_paths(char keyboard_paths[8][32]);
 
-void main()
+void test()
 {
     // キーボードイベントのパスへの配列
     char keyboard_paths[8][32];
