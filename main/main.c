@@ -8,12 +8,17 @@
 #include <errno.h>
 #include <signal.h>
 
+#define MAX_KEYBOARD_DEVICES 8
+
 // 外部関数
 void event_modifier_in_loop(struct input_event *ev);
-void search_keyboard_event_path(char *arg);
+int search_keyboard_event_paths(char keyboard_paths[MAX_KEYBOARD_DEVICES][32]);
 
-// 本物の入力デバイス
-int g_input_fd;
+// 本物の入力デバイスのリスト
+int g_input_fds[MAX_KEYBOARD_DEVICES];
+
+// 本物の入力デバイスの数
+int g_actual_keyboard_num;
 
 // 仮想の入力デバイス
 int g_uinput_fd;
@@ -91,9 +96,12 @@ struct uinput_user_dev create_uidev()
 // プログラム終了時に呼ばれるべき後始末関数
 void cleanup_and_exit()
 {
-  ioctl(g_input_fd, EVIOCGRAB, 0);
+  for (int i = 0; i < g_actual_keyboard_num; i++)
+  {
+    ioctl(g_input_fds[i], EVIOCGRAB, 0);
+    close(g_input_fds[i]);
+  }
   ioctl(g_uinput_fd, UI_DEV_DESTROY);
-  close(g_input_fd);
   close(g_uinput_fd);
   printf("Clean exit on signal. シグナルハンドラが動いたよ。\n");
   exit(0);
@@ -111,31 +119,28 @@ void setup_all_signal_handler_for_cleanup()
 int main()
 {
   // キーボードイベントをサーチする
-  char keyboard_event_path[100] = {'\0'};
-  search_keyboard_event_path(keyboard_event_path);
-  if (keyboard_event_path[0] == '\0')
+  char keyboard_paths[MAX_KEYBOARD_DEVICES][32];
+  g_actual_keyboard_num = search_keyboard_event_paths(keyboard_paths);
+  if (0 == g_actual_keyboard_num)
   {
     printf("no keyboard found\n");
     return 0;
   }
 
-  // 実キーボードのファイル（event4）を読み込み専用で開く
-  g_input_fd = open(keyboard_event_path, O_RDONLY);
-  if (g_input_fd < 0)
+  // 実キーボードのファイルを読み込み専用で開く
+  for (int i = 0; i < g_actual_keyboard_num; i++)
   {
-    perror("open input");
-    return 1;
+    g_input_fds[i] = open(keyboard_paths[i], O_RDONLY);
+    // キーボードを "つかむ"
+    sleep(1);
+    if (has_unreleased_keys(g_input_fds[i]) > 0)
+    {
+      fprintf(stderr, "Unreleased keys detected. Exiting.\n");
+      close(g_input_fds[i]);
+      return 1;
+    }
+    ioctl(g_input_fds[i], EVIOCGRAB, 1);
   }
-
-  // キーボードを "つかむ"
-  sleep(1);
-  if (has_unreleased_keys(g_input_fd) > 0)
-  {
-    fprintf(stderr, "Unreleased keys detected. Exiting.\n");
-    close(g_input_fd);
-    return 1;
-  }
-  ioctl(g_input_fd, EVIOCGRAB, 1);
 
   // uinput の準備
   g_uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
@@ -163,15 +168,43 @@ int main()
   setup_all_signal_handler_for_cleanup();
 
   // ループ
+  fd_set readfds;
+  int max_fd = -1;
   struct input_event ev;
   while (1)
   {
-    // イベントを読む
-    read(g_input_fd, &ev, sizeof(ev));
-    // イベントに変換をかける
-    event_modifier_in_loop(&ev);
-    // イベントを書く
-    write(g_uinput_fd, &ev, sizeof(ev));
+    FD_ZERO(&readfds);
+    // 全てのキーボードをセット
+    for (int i = 0; i < g_actual_keyboard_num; i++)
+    {
+      FD_SET(g_input_fds[i], &readfds);
+      if (g_input_fds[i] > max_fd)
+      {
+        max_fd = g_input_fds[i];
+      }
+    }
+
+    // イベントを待機
+    if (select(max_fd + 1, &readfds, NULL, NULL, NULL) < 0)
+    {
+      perror("select");
+      break;
+    }
+
+    // どのキーボードからイベントが来たかチェック
+    for (int i = 0; i < g_actual_keyboard_num; i++)
+    {
+      if (FD_ISSET(g_input_fds[i], &readfds))
+      {
+        if (read(g_input_fds[i], &ev, sizeof(ev)) == sizeof(ev))
+        {
+          // イベントに変換をかける
+          event_modifier_in_loop(&ev);
+          // イベントを書く
+          write(g_uinput_fd, &ev, sizeof(ev));
+        }
+      }
+    }
   }
 
   // 念の為クリーンアップ。通常このアプリは停止信号を受信する。
