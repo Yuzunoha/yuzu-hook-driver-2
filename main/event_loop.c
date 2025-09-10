@@ -50,9 +50,9 @@ void event_modifier_in_loop(struct input_event *ev)
         return;
     }
 
-    if (ev->code == KEY_HENKAN)
+    if (ev->code == KEY_HENKAN || ev->code == KEY_RIGHTALT)
     {
-        // 変換キーは右ctrlにリマップする
+        // (変換,右alt)は右ctrlにリマップする
         ev->code = KEY_RIGHTCTRL;
         return;
     }
